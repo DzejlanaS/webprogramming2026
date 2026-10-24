@@ -1,0 +1,12 @@
+# Dependencies (installed by Composer; run "composer install" to restore)
+backend/vendor/
+
+# Secrets (commit backend/config/config.example.php instead)
+backend/config/config.php
+
+# Logs
+backend/logs/*
+!backend/logs/.gitkeep
+
+# OS files
+.DS_Store

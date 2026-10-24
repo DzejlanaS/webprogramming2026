@@ -1,0 +1,99 @@
+<div class="container py-5">
+  <h1 class="h3 mb-4">Checkout</h1>
+
+  <div class="row g-5">
+    <div class="col-lg-7">
+      <form id="checkoutForm" novalidate>
+        <h2 class="h6 mb-3">Shipping Details</h2>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small">Full Name</label>
+            <input type="text" name="fullName" class="form-control" required />
+            <div class="invalid-feedback">Please enter your full name.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">Phone Number</label>
+            <input type="tel" name="phone" class="form-control" placeholder="+387 6x xxx xxx" required />
+            <div class="invalid-feedback">Please enter a valid phone number.</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small">Email Address</label>
+          <input type="email" name="email" class="form-control" required />
+          <div class="invalid-feedback">Please enter a valid email address.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small">Street Address</label>
+          <input type="text" name="street" class="form-control" placeholder="Street and house number" required />
+          <div class="invalid-feedback">Please enter your street address.</div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-8">
+            <label class="form-label small">City</label>
+            <select name="city" class="form-select" required>
+              <option value="" selected disabled>Select a city…</option>
+              <option>Sarajevo</option>
+              <option>Banja Luka</option>
+              <option>Tuzla</option>
+              <option>Zenica</option>
+              <option>Mostar</option>
+              <option>Bihać</option>
+              <option>Brčko</option>
+              <option>Prijedor</option>
+              <option>Trebinje</option>
+              <option>Other</option>
+            </select>
+            <div class="invalid-feedback">Please select your city.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">Postal Code</label>
+            <input type="text" name="postcode" class="form-control" inputmode="numeric" required />
+            <div class="invalid-feedback">Please enter a valid postal code.</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small">Country</label>
+          <input type="text" class="form-control" value="Bosnia and Herzegovina" disabled />
+          <div class="form-text">We currently deliver only within Bosnia and Herzegovina.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small">Order Notes (optional)</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="e.g. preferred delivery time"></textarea>
+        </div>
+
+        <div class="card card-petly bg-petly-soft border-0 p-3 mb-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-cash-coin fs-5 text-petly-secondary"></i>
+            <p class="small text-muted mb-0">
+              <strong>Cash on delivery.</strong> Online payment is not available yet -
+              you pay in cash when your order arrives. Our team will call you to confirm
+              before dispatch.
+            </p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-petly-primary btn-lg w-100">
+          Place Order
+        </button>
+      </form>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card card-petly p-4">
+        <h2 class="h6 mb-3">Order Summary</h2>
+        <div id="checkoutItems" class="mb-3"></div>
+        <hr />
+        <div class="d-flex justify-content-between fw-bold">
+          <span>Total</span>
+          <span id="checkoutTotal">0,00 KM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
