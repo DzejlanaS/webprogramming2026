@@ -1,0 +1,17 @@
+{
+    "name": "petly/backend",
+    "description": "Petly - REST API for the IT 2001 Web Programming pet shop project",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "ext-curl": "*",
+        "ext-pdo": "*",
+        "flightphp/core": "^3.19",
+        "zircote/swagger-php": "^6.12"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0"
+        }
+    }
+}

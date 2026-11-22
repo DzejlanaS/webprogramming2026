@@ -28,6 +28,7 @@ CREATE TABLE products (
     stock_quantity INT NOT NULL DEFAULT 0,
     image_url VARCHAR(255),
     is_featured TINYINT(1) NOT NULL DEFAULT 0,
+    pet_type ENUM('dog', 'cat', 'both') NOT NULL DEFAULT 'both',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -86,16 +87,16 @@ INSERT INTO categories (name, description) VALUES
 ('Grooming', 'Shampoos, brushes and coat care'),
 ('Health', 'Vitamins and supplements for healthy pets');
 
-INSERT INTO products (category_id, name, description, price, stock_quantity, image_url, is_featured) VALUES
-(1, 'Premium Dog Food 3kg', 'Grain-free, chicken & rice recipe for adult dogs.', 24.90, 24, 'https://images.unsplash.com/photo-1714068691210-073dc52c6c1d', 1),
-(1, 'Tasty Cat Food 2kg', 'Salmon & tuna recipe, no added sugar.', 19.90, 31, 'https://images.unsplash.com/photo-1558993457-4bc6ec2c3734', 1),
-(2, 'Squeaky Bone Toy', 'Durable rubber chew toy for dogs.', 6.50, 58, 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e', 0),
-(2, 'Feather Teaser Wand', 'Interactive wand toy to keep cats active.', 8.00, 40, 'https://images.unsplash.com/photo-1638826595775-e2eae86cda8e', 0),
-(3, 'Adjustable Leash', 'Padded handle, fits small to large dogs.', 12.00, 22, 'https://images.unsplash.com/photo-1555265626-8ed04bde01a1', 0),
-(3, 'Cozy Pet Bed', 'Soft fleece bed, machine washable cover.', 35.00, 15, 'https://images.unsplash.com/photo-1581888227599-779811939961', 1),
-(4, 'Oatmeal Shampoo', 'Gentle formula for sensitive skin.', 9.90, 27, 'https://images.unsplash.com/photo-1611173622933-91942d394b04', 0),
-(4, 'Slicker Brush', 'Reduces shedding, gentle on skin.', 7.50, 33, 'https://images.unsplash.com/photo-1727510190155-51abda425a82', 1),
-(5, 'Multivitamin Chews', 'Daily support for coat, joints and immunity.', 15.00, 19, 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd', 0);
+INSERT INTO products (category_id, name, description, price, stock_quantity, image_url, is_featured, pet_type) VALUES
+(1, 'Premium Dog Food 3kg', 'Grain-free, chicken & rice recipe for adult dogs.', 24.90, 24, 'https://images.unsplash.com/photo-1714068691210-073dc52c6c1d', 1, 'dog'),
+(1, 'Tasty Cat Food 2kg', 'Salmon & tuna recipe, no added sugar.', 19.90, 31, 'https://images.unsplash.com/photo-1558993457-4bc6ec2c3734', 1, 'cat'),
+(2, 'Squeaky Bone Toy', 'Durable rubber chew toy for dogs.', 6.50, 58, 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e', 0, 'dog'),
+(2, 'Feather Teaser Wand', 'Interactive wand toy to keep cats active.', 8.00, 40, 'https://images.unsplash.com/photo-1638826595775-e2eae86cda8e', 0, 'cat'),
+(3, 'Adjustable Leash', 'Padded handle, fits small to large dogs.', 12.00, 22, 'https://images.unsplash.com/photo-1555265626-8ed04bde01a1', 0, 'dog'),
+(3, 'Cozy Pet Bed', 'Soft fleece bed, machine washable cover.', 35.00, 15, 'https://images.unsplash.com/photo-1581888227599-779811939961', 1, 'both'),
+(4, 'Oatmeal Shampoo', 'Gentle formula for sensitive skin.', 9.90, 27, 'https://images.unsplash.com/photo-1611173622933-91942d394b04', 0, 'both'),
+(4, 'Slicker Brush', 'Reduces shedding, gentle on skin.', 7.50, 33, 'https://images.unsplash.com/photo-1727510190155-51abda425a82', 1, 'both'),
+(5, 'Multivitamin Chews', 'Daily support for coat, joints and immunity.', 15.00, 19, 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd', 0, 'both');
 
 INSERT INTO orders (user_id, order_number, order_date, total_amount, status, full_name, phone, email, street, city, postal_code, notes) VALUES
 (2, 'PET-104822', '2026-10-12 10:24:00', 32.40, 'delivered', 'Amina Karić', '+387 61 234 567', 'amina.karic@example.com', 'Zmaja od Bosne 12', 'Sarajevo', '71000', NULL),
