@@ -8,6 +8,14 @@ class OrderDao extends BaseDao
         parent::__construct('orders');
     }
 
+    public function getLatest(): array
+    {
+        $stmt = $this->connection->query(
+            'SELECT * FROM orders ORDER BY order_date DESC, id DESC'
+        );
+        return $stmt->fetchAll();
+    }
+
     public function getByUserId(int $userId): array
     {
         $stmt = $this->connection->prepare(
@@ -39,17 +47,24 @@ class OrderDao extends BaseDao
             $stmt->execute($order);
             $orderId = (int) $this->connection->lastInsertId();
 
-            $stmt = $this->connection->prepare(
+            $itemStmt = $this->connection->prepare(
                 'INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal)
                  VALUES (:order_id, :product_id, :quantity, :unit_price, :subtotal)'
             );
+            $stockStmt = $this->connection->prepare(
+                'UPDATE products SET stock_quantity = stock_quantity - :quantity WHERE id = :product_id'
+            );
             foreach ($items as $item) {
-                $stmt->execute([
+                $itemStmt->execute([
                     'order_id'   => $orderId,
                     'product_id' => $item['product_id'],
                     'quantity'   => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'subtotal'   => $item['subtotal'],
+                ]);
+                $stockStmt->execute([
+                    'quantity'   => $item['quantity'],
+                    'product_id' => $item['product_id'],
                 ]);
             }
 

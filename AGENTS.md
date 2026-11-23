@@ -37,6 +37,10 @@ Each route should call exactly one service method.
 
 Routes should not contain SQL queries or business logic.
 
+There is one route file per resource (`UserRoutes.php`, `CategoryRoutes.php`, `ProductRoutes.php`, `OrderRoutes.php`, `OrderItemRoutes.php`, `ContactRoutes.php`, `BreedFactRoutes.php`). Routes use plural nouns and `@id:[0-9]+` for ids, read the body with `Flight::request()->data->getData()` and query parameters with `Flight::request()->query`, cast the id with `(int)`, and answer with `Flight::json()`. When a service returns `null` (or `false` from `delete()`), the route answers 404. `POST` answers 201.
+
+`backend/index.php` is the front controller: it loads `vendor/autoload.php`, registers every service with `Flight::register('productService', 'ProductService')`, loads the route files and maps one error handler (`Flight::map('error')`) plus JSON answers for unknown routes (404) and wrong methods (405). `backend/.htaccess` sends every request that is not a real file or folder to `index.php`.
+
 ### 2. Services
 
 Location: `backend/services/`
@@ -45,9 +49,11 @@ Services handle the main application logic. This includes validating user input,
 
 Services should not contain SQL queries or directly handle HTTP requests and responses.
 
-Use exceptions for errors, such as `ValidationException` for invalid input or `NotFoundException` when something does not exist. Routes should handle these exceptions and return the appropriate HTTP response.
+Services report problems with exceptions and never know about HTTP. Invalid or missing input throws `InvalidArgumentException` (answered with 400), a broken business rule throws `DomainException` (409), a failing external API throws `ExternalApiException` (503), and a missing object is returned as `null` (the route answers 404). The error handler in `index.php` turns these into JSON answers with `Flight::jsonHalt()`; anything else becomes a 500 with a general message, and the real error goes to `backend/logs/error.log`.
 
-Services can extend a shared `BaseService` where it makes sense.
+Services build a new allow-listed array before calling the DAO and never pass the request body on. Prices, totals, the order status on creation and the payment method always come from the server, never from the client.
+
+Every entity service extends `BaseService`, which holds `getAll()`, `getById()`, `delete()` and small validation helpers (`requiredText()`, `optionalText()`, `requiredEmail()`, `toInt()`). A service that needs several tables receives the extra DAOs through its constructor with default values (dependency injection), for example `OrderService` uses `OrderDao`, `OrderItemDao`, `ProductDao` and `UserDao`. `BreedFactService` calls TheDogAPI and TheCatAPI with cURL and a timeout.
 
 ### 3. DAO
 
@@ -61,13 +67,33 @@ Each DAO should extend a shared `BaseDao`, which handles the database connection
 
 Do not place business logic or HTTP-related code inside DAO classes.
 
+Current DAO classes (one per table): `UserDao`, `CategoryDao`, `ProductDao`, `OrderDao`, `OrderItemDao` and `ContactDao`. `BaseDao` provides `getAll()`, `getById($id)`, `insert($data)`, `update($id, $data)` and `delete($id)`. A child DAO only passes its table name to `BaseDao` and adds queries that are specific to its table. `insert()` and `update()` build column names from the array keys, so only a service may call them, and only with keys it chose itself, never with keys taken directly from a request.
+
+When several changes belong together (an order and its order items), use a transaction in the DAO (`beginTransaction()`, `commit()`, `rollBack()`), as in `OrderDao::createOrder()`.
+
+## Database
+
+The database is MySQL and is named `Petly`. The schema and the sample data live in `backend/database/petly.sql`. Any change to the schema must be made in that file too, so that the project can always be set up again by importing it.
+
+Tables: `users`, `categories`, `products`, `orders`, `order_items`, `contacts`. Every table has an `id INT AUTO_INCREMENT` primary key, and foreign keys are named after the table they point to (`user_id`, `category_id`, `order_id`, `product_id`).
+
+Prices are stored as `DECIMAL`, never as `FLOAT`. Passwords are stored only as hashes (`password_hash`). `products.pet_type` (`dog`, `cat` or `both`) says which animal a product is for and decides which breed facts the product detail page shows.
+
+## API Documentation
+
+The API is documented with OpenAPI using swagger-php 6 and PHP 8 attributes (`use OpenApi\Attributes as OA;`). `backend/public/v1/docs/doc_setup.php` holds the API info, the server URL and the reusable schemas (an input schema and an output schema per entity, plus `Error` and `Message`). Every route file has a matching class in `paths/` with one empty method per endpoint that only carries the attribute. Whenever a route is added or changed, change its attribute in the same commit and check Swagger UI at `backend/public/v1/docs/`. Paths use `{id}` (OpenAPI), not `@id` (FlightPHP).
+
+## Logging
+
+`backend/utils/Logger.php` writes `backend/logs/info.log` and `backend/logs/error.log` with lines like `[2026-12-01 14:05:12] INFO ...`. Unhandled exceptions and external API failures go to the error log, successful external API calls to the info log. Never log passwords, tokens or API keys.
+
 ## Configuration
 
 Database credentials, JWT secrets, and other sensitive configuration values should be stored in:
 
 `backend/config/config.php`
 
-This file must never be committed to Git.
+This file must never be committed to Git. Besides the database settings it holds the TheDogAPI and TheCatAPI URLs and keys and the external API timeout.
 
 Instead, keep a `backend/config/config.example.php` file in the repository to show which configuration values are required.
 
@@ -87,13 +113,13 @@ Pages should load dynamically without refreshing the entire application.
 
 Each page has its own HTML fragment inside `frontend/views/`. These fragments are loaded using JavaScript `fetch()`.
 
-Because of this, the application needs to run through a local web server such as XAMPP with Apache. Opening `index.html` directly in the browser will not work correctly.
+Because of this, the application needs to run through a local web server such as XAMPP with Apache. Opening `index.html` directly in the browser will not work correctly. Without XAMPP, run `php -S localhost:8000 server.php` in the project folder: `server.php` serves real files and sends other `/backend/...` requests to `backend/index.php`, like `.htaccess` does on Apache.
 
 JavaScript functionality should be organized into separate files based on the features they handle.
 
 ## Folder Structure
 
-    Pet Shop/
+    Petly/
     ├── AGENTS.md
     ├── README.md
     ├── CLAUDE.md
@@ -101,12 +127,32 @@ JavaScript functionality should be organized into separate files based on the fe
     │   ├── AI_LOG.md
     │   └── ERD.png
     ├── .gitignore
+    ├── server.php               (router for php -S localhost:8000 server.php)
     ├── backend/
-    │   ├── routes/
-    │   ├── services/
+    │   ├── .htaccess
+    │   ├── index.php
+    │   ├── composer.json
+    │   ├── composer.lock
+    │   ├── vendor/              (Composer, not in Git)
+    │   ├── routes/              (one *Routes.php file per resource)
+    │   ├── services/            (BaseService + one service per entity, BreedFactService, ExternalApiException)
+    │   ├── public/v1/docs/      (Swagger UI, swagger.php, doc_setup.php, paths/*Paths.php)
+    │   ├── utils/
+    │   │   └── Logger.php
     │   ├── dao/
+    │   │   ├── BaseDao.php
+    │   │   ├── UserDao.php
+    │   │   ├── CategoryDao.php
+    │   │   ├── ProductDao.php
+    │   │   ├── OrderDao.php
+    │   │   ├── OrderItemDao.php
+    │   │   └── ContactDao.php
+    │   ├── database/
+    │   │   └── petly.sql
     │   ├── middleware/
     │   ├── config/
+    │   │   ├── config.example.php
+    │   │   └── config.php
     │   └── logs/
     └── frontend/
         ├── index.html
